@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "Installing roonumio Dependencies"
+echo "Installing volroon Dependencies"
 apt-get -qq update
 # Install the required packages via apt-get
 apt-get -qqy install bzip2

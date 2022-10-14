@@ -24,9 +24,9 @@ msgMap.set('paused', 'pause')
 msgMap.set('loading', 'pause')
 msgMap.set('stopped', 'stop')
 
-module.exports = roonumio;
+module.exports = volroon;
 
-function roonumio(context) {
+function volroon(context) {
 	var self = this;
 	// Save a reference to the parent commandRouter
 	self.context = context;
@@ -37,7 +37,7 @@ function roonumio(context) {
 	self.coreid;
 	this.state = {
 		status: 'stop',
-		service: 'roonumio',
+		service: 'volroon',
 		title: '',
 		artist: '',
 		album: '',
@@ -64,7 +64,7 @@ function roonumio(context) {
 
 }
 
-roonumio.prototype.roonListener = function () {
+volroon.prototype.roonListener = function () {
 	var self = this;
 	roon = new RoonApi({
 		// Make it look like an existing built-in Roon extension and you don't need to approve it in the UI.
@@ -130,7 +130,7 @@ roonumio.prototype.roonListener = function () {
 
 }
 
-roonumio.prototype.chooseTheRightCore = function () {
+volroon.prototype.chooseTheRightCore = function () {
 	var self = this;
 	//Get the Core IP and Port. If you have multiple cores or even just 2 PC's running Roon, finding the right core by just looking at core.moo.transport.host will be a hit and miss.
 	if (zoneid && core.services.RoonApiTransport._zones && core.services.RoonApiTransport._zones[zoneid] && !coreFound) {
@@ -144,7 +144,7 @@ roonumio.prototype.chooseTheRightCore = function () {
 
 }
 
-roonumio.prototype.indentifyZone = function (msg) {
+volroon.prototype.indentifyZone = function (msg) {
 	var self = this;
 	// Get the zoneid for the device
 	// I might need to do this for msg.zones_changed as well in case it get missed going down this road.
@@ -167,7 +167,7 @@ roonumio.prototype.indentifyZone = function (msg) {
 	}
 }
 
-roonumio.prototype.updateMetadata = function (msg) {
+volroon.prototype.updateMetadata = function (msg) {
 	var self = this;
 
 	self.indentifyZone(msg)
@@ -240,7 +240,7 @@ roonumio.prototype.updateMetadata = function (msg) {
 	}
 }
 
-roonumio.prototype.setRoonActive = function () {
+volroon.prototype.setRoonActive = function () {
 	var self = this;
 	var currentState;
 	if (!roonIsActive) {
@@ -253,29 +253,29 @@ roonumio.prototype.setRoonActive = function () {
 
 		if (!self.commandRouter.stateMachine.isVolatile) {
 			self.commandRouter.stateMachine.setVolatile({
-				service: 'roonumio',
+				service: 'volroon',
 				callback: self.unsetVol.bind(self)
 			})
-			self.logger.info('roonumio::Setting volatile state to roonumio')
+			self.logger.info('volroon::Setting volatile state to volroon')
 		}
 
-		this.commandRouter.pushToastMessage('info', 'Roonumio', 'Roon Bridge is active.');
+		this.commandRouter.pushToastMessage('info', 'volroon', 'Roon Bridge is active.');
 
 	}
 };
 
-roonumio.prototype.setRoonInactive = function () {
+volroon.prototype.setRoonInactive = function () {
 	var self = this;
 	roonIsActive = false;
 	// coreFound = false;
 };
 
 //The unsetVolatile callback will be called when "stop" is pushed or called.
-roonumio.prototype.unsetVol = function () {
+volroon.prototype.unsetVol = function () {
 	var self = this;
 
 	var state = self.getState();
-	if (state && state.service && state.service !== 'roonumio' && self.commandRouter.stateMachine.isVolatile) {
+	if (state && state.service && state.service !== 'volroon' && self.commandRouter.stateMachine.isVolatile) {
 		return self.stop();
 	} else {
 		setTimeout(() => {
@@ -286,7 +286,7 @@ roonumio.prototype.unsetVol = function () {
 
 };
 
-roonumio.prototype.outputDeviceCallback = function () { // If the outputdevice changes we can do something about it here.
+volroon.prototype.outputDeviceCallback = function () { // If the outputdevice changes we can do something about it here.
 	var self = this;
 
 
@@ -300,7 +300,7 @@ roonumio.prototype.outputDeviceCallback = function () { // If the outputdevice c
 
 };
 
-roonumio.prototype.getZones = function () {
+volroon.prototype.getZones = function () {
 	var self = this;
 	core.services.RoonApiTransport.get_zones(function (err, zones) {
 		if (!err) {
@@ -310,30 +310,30 @@ roonumio.prototype.getZones = function () {
 }
 
 // Optional functions exposed for making development easier and more clear
-roonumio.prototype.getSystemConf = function (pluginName, varName) {
+volroon.prototype.getSystemConf = function (pluginName, varName) {
 };
 
-roonumio.prototype.setSystemConf = function (pluginName, varName) {
+volroon.prototype.setSystemConf = function (pluginName, varName) {
 };
 
-roonumio.prototype.getAdditionalConf = function (type, controller, data) {
+volroon.prototype.getAdditionalConf = function (type, controller, data) {
 	var self = this;
 	return self.context.coreCommand.executeOnPlugin(type, controller, 'getConfigParam', data);
 };
 
-roonumio.prototype.setAdditionalConf = function () {
+volroon.prototype.setAdditionalConf = function () {
 };
 
-roonumio.prototype.checkAudioDeviceAvailable = function () {
+volroon.prototype.checkAudioDeviceAvailable = function () {
 	return self.coreCommand.executeOnPlugin('audio_interface', 'alsa_controller', 'checkAudioDeviceAvailable', '');
 }
 
-roonumio.prototype.getOutputDeviceName = function () {
+volroon.prototype.getOutputDeviceName = function () {
 	var self = this;
 	outputdevicename = self.getAdditionalConf('audio_interface', 'alsa_controller', 'outputdevicename');
 };
 
-roonumio.prototype.onVolumioStart = function () {
+volroon.prototype.onVolumioStart = function () {
 	var self = this;
 	this.commandRouter.sharedVars.registerCallback('alsa.outputdevice', this.outputDeviceCallback.bind(this));
 	var configFile = this.commandRouter.pluginManager.getConfigurationFile(this.context, 'config.json');
@@ -342,7 +342,7 @@ roonumio.prototype.onVolumioStart = function () {
 	return libQ.resolve();
 };
 
-roonumio.prototype.onStart = function () {
+volroon.prototype.onStart = function () {
 	var self = this;
 	var defer = libQ.defer();
 
@@ -365,7 +365,7 @@ roonumio.prototype.onStart = function () {
 	return defer.promise;
 };
 
-roonumio.prototype.onStop = function () {
+volroon.prototype.onStop = function () {
 	var self = this;
 	var defer = libQ.defer();
 	roon = undefined;
@@ -383,7 +383,7 @@ roonumio.prototype.onStop = function () {
 	return defer.promise;
 };
 
-roonumio.prototype.onRestart = function () {
+volroon.prototype.onRestart = function () {
 	var self = this;
 	var defer = libQ.defer();
 
@@ -409,7 +409,7 @@ roonumio.prototype.onRestart = function () {
 
 // Configuration Methods -----------------------------------------------------------------------------
 
-roonumio.prototype.getUIConfig = function () {
+volroon.prototype.getUIConfig = function () {
 	var defer = libQ.defer();
 	var self = this;
 
@@ -430,21 +430,21 @@ roonumio.prototype.getUIConfig = function () {
 	return defer.promise;
 };
 
-roonumio.prototype.getConfigurationFiles = function () {
+volroon.prototype.getConfigurationFiles = function () {
 	return ['config.json'];
 }
 
-roonumio.prototype.setUIConfig = function (data) {
+volroon.prototype.setUIConfig = function (data) {
 	var self = this;
 	//Perform your installation tasks here
 };
 
-roonumio.prototype.getConf = function (varName) {
+volroon.prototype.getConf = function (varName) {
 	var self = this;
 	//Perform your installation tasks here
 };
 
-roonumio.prototype.setConf = function (varName, varValue) {
+volroon.prototype.setConf = function (varName, varValue) {
 	var self = this;
 	//Perform your installation tasks here
 };
@@ -455,14 +455,14 @@ roonumio.prototype.setConf = function (varName, varValue) {
 // If your plugin is not a music_sevice don't use this part and delete it
 
 
-roonumio.prototype.addToBrowseSources = function () {
+volroon.prototype.addToBrowseSources = function () {
 
 	// Use this function to add your music service plugin to music sources
 	//var data = {name: 'Spotify', uri: 'spotify',plugin_type:'music_service',plugin_name:'spop'};
 	this.commandRouter.volumioAddToBrowseSources(data);
 };
 
-roonumio.prototype.handleBrowseUri = function (curUri) {
+volroon.prototype.handleBrowseUri = function (curUri) {
 	var self = this;
 
 	//self.commandRouter.logger.info(curUri);
@@ -473,7 +473,7 @@ roonumio.prototype.handleBrowseUri = function (curUri) {
 };
 
 // Roon control method
-roonumio.prototype.roonControl = function (zoneid, control) {
+volroon.prototype.roonControl = function (zoneid, control) {
 	var self = this;
 	var currentState = self.state.status;
 
@@ -492,7 +492,7 @@ roonumio.prototype.roonControl = function (zoneid, control) {
 }
 
 // Roon settings (shuffle and repeat)
-roonumio.prototype.roonSettings = function (zoneid, settings) {
+volroon.prototype.roonSettings = function (zoneid, settings) {
 	var self = this;
 	var currentState = self.state.status;
 
@@ -511,13 +511,13 @@ roonumio.prototype.roonSettings = function (zoneid, settings) {
 
 }
 // Define a method to clear, add, and play an array of tracks
-roonumio.prototype.clearAddPlayTrack = function (track) {
+volroon.prototype.clearAddPlayTrack = function (track) {
 	var self = this;
 	self.commandRouter.pushConsoleMessage(this.state.service + '::clearAddPlayTrack');
 
 };
 
-roonumio.prototype.seek = function (timepos) {
+volroon.prototype.seek = function (timepos) {
 	var self = this;
 	if (zoneid != undefined && timepos != undefined && coreFound != false) {
 		return coreFound.services.RoonApiTransport.seek(zone, 'absolute', (timepos / 1000), (err) => {
@@ -532,13 +532,13 @@ roonumio.prototype.seek = function (timepos) {
 };
 
 // Stop
-roonumio.prototype.stop = function () {
+volroon.prototype.stop = function () {
 	var self = this;
 	self.roonControl(zoneid, 'stop');
 	self.setRoonInactive();
 
 	var state = self.getState();
-	if (state && state.service && state.service === 'roonumio') {
+	if (state && state.service && state.service === 'volroon') {
 		self.logger.info(this.state.service + '::Roon Playback Stopped, clearing state');
 		self.context.coreCommand.stateMachine.resetVolumioState();
 	}
@@ -548,7 +548,7 @@ roonumio.prototype.stop = function () {
 };
 
 //Volumio Stop - To kill currently running services before we start ours.
-roonumio.prototype.volumioStop = function () {
+volroon.prototype.volumioStop = function () {
 	var self = this;
 	// if (!roonIsActive) {
 	// 	self.logger.info(this.state.service + '::Stopping currently active service');
@@ -559,41 +559,41 @@ roonumio.prototype.volumioStop = function () {
 }
 
 // Volumio controls
-roonumio.prototype.pause = function () {
+volroon.prototype.pause = function () {
 	var self = this;
 	if (this.is_pause_allowed) self.roonControl(zoneid, 'pause');
 
 };
 
-roonumio.prototype.play = function () {
+volroon.prototype.play = function () {
 	var self = this;
 	if (this.is_play_allowed) self.roonControl(zoneid, 'play');
 
 
 };
 
-roonumio.prototype.next = function () {
+volroon.prototype.next = function () {
 	var self = this;
 	if (this.is_next_allowed) self.roonControl(zoneid, 'next');
 };
 
-roonumio.prototype.previous = function () {
+volroon.prototype.previous = function () {
 	var self = this;
 	if (this.is_previous_allowed) self.roonControl(zoneid, 'previous');
 };
 
-roonumio.prototype.random = function (value) {
+volroon.prototype.random = function (value) {
 	var self = this;
 	self.roonSettings(zoneid, { 'shuffle': value ? true : false })
 }
 
-roonumio.prototype.repeat = function (value, repeatSingle) {
+volroon.prototype.repeat = function (value, repeatSingle) {
 	var self = this;
 	self.roonSettings(zoneid, { 'loop': repeatSingle && value ? 'loop_one' : value && !repeatSingle ? 'loop' : 'disabled' })
 }
 
 // Get state
-roonumio.prototype.getState = function () {
+volroon.prototype.getState = function () {
 	var self = this;
 	self.commandRouter.pushConsoleMessage(this.state.service + '::getState');
 	return self.commandRouter.stateMachine.getState();
@@ -601,7 +601,7 @@ roonumio.prototype.getState = function () {
 };
 
 // Announce updated State
-roonumio.prototype.pushState = function () {
+volroon.prototype.pushState = function () {
 	var self = this;
 	self.commandRouter.pushConsoleMessage(this.state.service + '::pushState');
 
@@ -609,7 +609,7 @@ roonumio.prototype.pushState = function () {
 };
 
 
-roonumio.prototype.explodeUri = function (uri) {
+volroon.prototype.explodeUri = function (uri) {
 	var self = this;
 	var defer = libQ.defer();
 
@@ -618,7 +618,7 @@ roonumio.prototype.explodeUri = function (uri) {
 	return defer.promise;
 };
 
-roonumio.prototype.getAlbumArt = function (image_key = '') {
+volroon.prototype.getAlbumArt = function (image_key = '') {
 	var self = this;
 
 	if (image_key && self.coreip && self.coreport) {
@@ -628,7 +628,7 @@ roonumio.prototype.getAlbumArt = function (image_key = '') {
 	}
 };
 
-roonumio.prototype.search = function (query) {
+volroon.prototype.search = function (query) {
 	var self = this;
 	var defer = libQ.defer();
 
@@ -637,24 +637,24 @@ roonumio.prototype.search = function (query) {
 	return defer.promise;
 };
 
-roonumio.prototype._searchArtists = function (results) {
+volroon.prototype._searchArtists = function (results) {
 
 };
 
-roonumio.prototype._searchAlbums = function (results) {
+volroon.prototype._searchAlbums = function (results) {
 
 };
 
-roonumio.prototype._searchPlaylists = function (results) {
+volroon.prototype._searchPlaylists = function (results) {
 
 
 };
 
-roonumio.prototype._searchTracks = function (results) {
+volroon.prototype._searchTracks = function (results) {
 
 };
 
-roonumio.prototype.goto = function (data) {
+volroon.prototype.goto = function (data) {
 	var self = this
 	var defer = libQ.defer()
 
