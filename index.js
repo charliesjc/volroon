@@ -68,11 +68,11 @@ volroon.prototype.roonListener = function () {
 	var self = this;
 	roon = new RoonApi({
 		// Make it look like an existing built-in Roon extension and you don't need to approve it in the UI.
-		extension_id: 'com.roonlabs.display_zone',
-		display_name: 'Roon API Display Zone',
-		display_version: "1.0.0",
-		publisher: 'Roon Labs, LLC',
-		email: 'contact@roonlabs.com',
+		extension_id: 'com.roonlabs.display_zone', // I think I only need to keep this one constant to avoid needing auth in Roon.
+		display_name: 'volroon - Roon Bridge on Volumio',
+		display_version: "0.1.1",
+		publisher: 'Dale Rider',
+		email: 'dale@sempervirens.co.za',
 		log_level: 'none',
 
 
