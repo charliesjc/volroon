@@ -80,13 +80,10 @@ volroon.prototype.roonListener = function () {
 			core = core_;
 			core.services.RoonApiTransport.subscribe_zones(function (response, msg) {
 				// self.logger.error('Roon zone printout: \n' + JSON.stringify(msg, null, ' '));
-				if (response == "Subscribed") {
-					self.updateMetadata(msg);
-					// console.log(activeZone)
-				} else if (response == "Changed") {
-					if (msg.zones_added || msg.zones_changed) {
-						// self.indentifyZone(msg);
+				if (response == "Subscribed" || "Changed") {
+					if (msg.zones || msg.zones_added || msg.zones_changed) {
 						self.updateMetadata(msg);
+						// console.log(activeZone)
 					}
 					if (msg.zones_seek_changed && roonIsActive) {
 						msg.zones_seek_changed.find(zone => {
@@ -147,7 +144,6 @@ volroon.prototype.chooseTheRightCore = function () {
 volroon.prototype.indentifyZone = function (msg) {
 	var self = this;
 	// Get the zoneid for the device
-	// I might need to do this for msg.zones_changed as well in case it get missed going down this road.
 	if (((msg.zones || msg.zones_changed) && zoneid == undefined) || (msg.zones_added)) {
 		zone = (msg.zones ? msg.zones : msg.zones_changed ? msg.zones_changed : msg.zones_added).find(zone => {
 			return zone =
