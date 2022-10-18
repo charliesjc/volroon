@@ -148,12 +148,14 @@ volroon.prototype.chooseTheRightCore = function () {
 		self.coreid = core.core_id ? core.core_id : '';
 		if (self.coreip && self.coreport) coreFound = core;
 		self.logger.info(`${this.state.service}::Roon Core Identified: ${self.coreip}:${self.coreport} with ID of: ${self.coreid}`)
-		return defer.resolve();
+		defer.resolve();
 	} else if (coreFound) {
-		return defer.resolve()
+		defer.resolve()
+	} else {
+		defer.resolve('Core not found - continuing without it.')
 	}
 
-	return defer.reject('Core not found.');
+	return defer.promise;
 
 }
 
