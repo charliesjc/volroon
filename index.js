@@ -16,7 +16,7 @@ var roon;
 var outputdevicename;
 var roonIsActive = false;
 var roonPausedTimer;
-var coreFound = false;
+var coreFound;
 
 const msgMap = new Map();
 msgMap.set('playing', 'play')
@@ -81,24 +81,28 @@ volroon.prototype.roonListener = function () {
 			core.services.RoonApiTransport.subscribe_zones(function (response, msg) {
 				// self.logger.error('Roon zone printout: \n' + JSON.stringify(msg, null, ' '));
 				if (response == "Subscribed" || "Changed") {
-					if (msg.zones || msg.zones_added || msg.zones_changed) {
-						self.updateMetadata(msg);
-						// console.log(activeZone)
-					}
-					if (msg.zones_seek_changed && roonIsActive) {
-						msg.zones_seek_changed.find(zone => {
-							if (zone.zone_id === zoneid) {
-								if (zone.seek_position && Math.abs((zone.seek_position * 1000) - self.state.seek) > 1500) {
-									self.state.seek = zone.seek_position * 1000;
-									self.pushState()
-								} else {
-									self.state.seek = zone.seek_position * 1000;
+					try {
+						if (msg.zones || msg.zones_added || msg.zones_changed) {
+							self.updateMetadata(msg);
+							// console.log(activeZone)
+						}
+						if (msg.zones_seek_changed && roonIsActive) {
+							msg.zones_seek_changed.find(zone => {
+								if (zone.zone_id === zoneid) {
+									if (zone.seek_position && Math.abs((zone.seek_position * 1000) - self.state.seek) > 1500) {
+										self.state.seek = zone.seek_position * 1000;
+										self.pushState()
+									} else {
+										self.state.seek = zone.seek_position * 1000;
+									}
+
 								}
+							});
+							// self.pushState();
 
-							}
-						});
-						// self.pushState();
-
+						}
+					} catch (e) {
+						self.logger.error(`volroon::subscribe_zones error: ${e}`)
 					}
 				}
 				// if (Date.now() - roonPausedTimer >= 10000) {
@@ -123,7 +127,6 @@ volroon.prototype.roonListener = function () {
 
 	roon.start_discovery();
 	self.logger.info(this.state.service + '::Roon API Services Started')
-	// self.commandRouter.pushConsoleMessage(this.state.service + '::Roon API Services Started');
 
 }
 
@@ -156,17 +159,16 @@ volroon.prototype.indentifyZone = function (msg) {
 		})
 
 		zoneid = (zone && zone.zone_id) ? zone.zone_id : undefined;
-		// This works much better over here. If we're busy looking at the right zone then we can only be looking at the correct core as well.
-		self.chooseTheRightCore();
-
 
 	}
+
 }
 
 volroon.prototype.updateMetadata = function (msg) {
 	var self = this;
 
-	self.indentifyZone(msg)
+	self.indentifyZone(msg);
+	coreFound ?? self.chooseTheRightCore();
 
 	if (msg.zones || msg.zones_changed || msg.zones_added) {
 		zone = (msg.zones ? msg.zones : msg.zones_changed ? msg.zones_changed : msg.zones_added).find(zone => {
@@ -179,7 +181,6 @@ volroon.prototype.updateMetadata = function (msg) {
 		if (zone.state == 'playing') {
 			self.setRoonActive();
 
-			// self.prepareRoonPlayback();
 		}
 
 		// This was a plan to have Volumio clear everything if Roon was sitting "paused" for long enough. I.e. you're gone.
@@ -364,7 +365,7 @@ volroon.prototype.onStart = function () {
 volroon.prototype.onStop = function () {
 	var self = this;
 	var defer = libQ.defer();
-	roon = undefined;
+	// roon = undefined;
 	exec('/usr/bin/sudo /bin/systemctl stop roonbridge.service', { uid: 1000, gid: 1000 }, function (error, stdout, stderr) {
 		if (error) {
 			self.logger.error('::Cannot kill Roon Bridge - Error: ' + error);
@@ -532,7 +533,6 @@ volroon.prototype.stop = function () {
 	var self = this;
 	self.roonControl(zoneid, 'stop');
 	self.setRoonInactive();
-
 	var state = self.getState();
 	if (state && state.service && state.service === 'volroon') {
 		self.logger.info(this.state.service + '::Roon Playback Stopped, clearing state');
