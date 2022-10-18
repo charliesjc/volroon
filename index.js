@@ -81,11 +81,18 @@ volroon.prototype.roonListener = function () {
 			core.services.RoonApiTransport.subscribe_zones(function (response, msg) {
 				// self.logger.error('Roon zone printout: \n' + JSON.stringify(msg, null, ' '));
 				if (response == "Subscribed" || "Changed") {
+
+					if (msg.zones || msg.zones_added || msg.zones_changed) {
+						self.indentifyZone(msg)
+							.then(self.chooseTheRightCore())
+							.then(self.updateMetadata(msg))
+							.fail(err => {
+								self.logger.info(`volroon::Metadata - ${err}`);
+							});
+
+						// console.log(activeZone)
+					}
 					try {
-						if (msg.zones || msg.zones_added || msg.zones_changed) {
-							self.updateMetadata(msg);
-							// console.log(activeZone)
-						}
 						if (msg.zones_seek_changed && roonIsActive) {
 							msg.zones_seek_changed.find(zone => {
 								if (zone.zone_id === zoneid) {
@@ -102,7 +109,7 @@ volroon.prototype.roonListener = function () {
 
 						}
 					} catch (e) {
-						self.logger.error(`volroon::subscribe_zones error: ${e}`)
+						self.logger.error(`volroon::Error during seek change - ${e}`);
 					}
 				}
 				// if (Date.now() - roonPausedTimer >= 10000) {
@@ -132,6 +139,7 @@ volroon.prototype.roonListener = function () {
 
 volroon.prototype.chooseTheRightCore = function () {
 	var self = this;
+	var defer = libQ.defer()
 	//Get the Core IP and Port. If you have multiple cores or even just 2 PC's running Roon, finding the right core by just looking at core.moo.transport.host will be a hit and miss.
 	if (zoneid && core.services.RoonApiTransport._zones && core.services.RoonApiTransport._zones[zoneid] && !coreFound) {
 
@@ -140,12 +148,18 @@ volroon.prototype.chooseTheRightCore = function () {
 		self.coreid = core.core_id ? core.core_id : '';
 		if (self.coreip && self.coreport) coreFound = core;
 		self.logger.info(`${this.state.service}::Roon Core Identified: ${self.coreip}:${self.coreport} with ID of: ${self.coreid}`)
+		return defer.resolve();
+	} else if (coreFound) {
+		return defer.resolve()
 	}
+
+	return defer.reject('Core not found.');
 
 }
 
 volroon.prototype.indentifyZone = function (msg) {
 	var self = this;
+	var defer = libQ.defer();
 	// Get the zoneid for the device
 	if (((msg.zones || msg.zones_changed) && zoneid == undefined) || (msg.zones_added)) {
 		zone = (msg.zones ? msg.zones : msg.zones_changed ? msg.zones_changed : msg.zones_added).find(zone => {
@@ -161,14 +175,14 @@ volroon.prototype.indentifyZone = function (msg) {
 		zoneid = (zone && zone.zone_id) ? zone.zone_id : undefined;
 
 	}
-
+	zoneid ? defer.resolve() : defer.reject('ZoneID not found.');
+	return defer.promise;
 }
 
 volroon.prototype.updateMetadata = function (msg) {
 	var self = this;
+	var defer = libQ.defer();
 
-	self.indentifyZone(msg);
-	coreFound ?? self.chooseTheRightCore();
 
 	if (msg.zones || msg.zones_changed || msg.zones_added) {
 		zone = (msg.zones ? msg.zones : msg.zones_changed ? msg.zones_changed : msg.zones_added).find(zone => {
@@ -232,9 +246,11 @@ volroon.prototype.updateMetadata = function (msg) {
 
 			self.logger.verbose(`${this.state.service}::State snapshot: ${JSON.stringify(self.state, null, '')}`);
 			self.pushState();
+			return defer.resolve();
 			// zone = null;
 		}
 	}
+	return defer.reject('Unable to update Metadata');
 }
 
 volroon.prototype.setRoonActive = function () {
