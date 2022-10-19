@@ -86,9 +86,9 @@ volroon.prototype.roonListener = function () {
 						self.indentifyZone(msg)
 							.then(self.chooseTheRightCore())
 							.then(self.updateMetadata(msg))
-							.fail(err => {
-								self.logger.info(`volroon::Metadata - ${err}`);
-							});
+						// .fail(err => {
+						// 	self.logger.info(`volroon::Metadata - ${err}`);
+						// });
 
 						// console.log(activeZone)
 					}
@@ -150,10 +150,10 @@ volroon.prototype.chooseTheRightCore = function () {
 		self.logger.info(`${this.state.service}::Roon Core Identified: ${self.coreip}:${self.coreport} with ID of: ${self.coreid}`)
 		defer.resolve();
 	} else if (coreFound) {
-		defer.resolve()
-	} else {
-		defer.resolve('Core not found - continuing without it.')
-	}
+		defer.resolve();
+	} //else {
+	// defer.resolve('Core not found - continuing without it.');
+	// }
 
 	return defer.promise;
 
@@ -248,34 +248,38 @@ volroon.prototype.updateMetadata = function (msg) {
 
 			self.logger.verbose(`${this.state.service}::State snapshot: ${JSON.stringify(self.state, null, '')}`);
 			self.pushState();
-			return defer.resolve();
+			defer.resolve();
 			// zone = null;
 		}
 	}
-	return defer.reject('Unable to update Metadata');
+	return defer.promise;
 }
 
 volroon.prototype.setRoonActive = function () {
 	var self = this;
-	var currentState;
+
 	if (!roonIsActive) {
-		currentState = self.getState();
-		if (currentState && (currentState.status === 'pause' || currentState.status === 'play') && currentState.service !== this.state.service) {
-			self.volumioStop()
-			self.commandRouter.stateMachine.playQueue.clearPlayQueue();
+		var state = self.getState();
+		if (state && state.service && state.service !== this.state.service) {
+			if (self.commandRouter.stateMachine.isVolatile) {
+				self.commandRouter.stateMachine.unSetVolatile();
+			} else {
+				self.volumioStop();
+				self.context.coreCommand.stateMachine.resetVolumioState();
+			}
 		}
+
 		roonIsActive = true;
 
-		if (!self.commandRouter.stateMachine.isVolatile) {
+		setTimeout(() => {
 			self.commandRouter.stateMachine.setVolatile({
 				service: 'volroon',
 				callback: self.unsetVol.bind(self)
 			})
-			self.logger.info('volroon::Setting volatile state to volroon')
-		}
-
-		this.commandRouter.pushToastMessage('info', 'volroon', 'Roon Bridge is active.');
-
+			self.logger.info('volroon::Setting volatile state to volroon');
+			self.pushState();
+			this.commandRouter.pushToastMessage('info', 'volroon', 'Roon Bridge is active.');
+		}, 1000);
 	}
 };
 
@@ -549,8 +553,12 @@ volroon.prototype.seek = function (timepos) {
 // Stop
 volroon.prototype.stop = function () {
 	var self = this;
-	self.roonControl(zoneid, 'stop');
-	self.setRoonInactive();
+
+	if (roonIsActive) {
+		self.roonControl(zoneid, 'stop');
+		self.setRoonInactive();
+	}
+
 	var state = self.getState();
 	if (state && state.service && state.service === 'volroon') {
 		self.logger.info(this.state.service + '::Roon Playback Stopped, clearing state');
