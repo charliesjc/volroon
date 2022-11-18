@@ -174,7 +174,7 @@ volroon.prototype.indentifyZone = function (msg) {
 				zone.outputs.find(output => {
 					return output =
 						output.source_controls.find(source_control => {
-							return source_control.display_name === (outputdevicename || outputdevicecardname)
+							return source_control.display_name === outputdevicename || source_control.display_name === outputdevicecardname
 						})
 				})
 		})
