@@ -404,15 +404,14 @@ volroon.prototype.onStart = function () {
 volroon.prototype.onStop = function () {
 	var self = this;
 	var defer = libQ.defer();
-	core,
-		zone,
-		zoneid,
-		roon,
-		outputdevicename,
-		outputdevicecardname,
-		roonIsActive,
-		roonPausedTimer,
-		coreFound = undefined;
+	// core,
+	// 	zone,
+	// 	zoneid,
+	// 	roon,
+	// 	outputdevicename,
+	// 	roonIsActive,
+	// 	roonPausedTimer,
+	// 	coreFound = undefined;
 
 	exec('/usr/bin/sudo /bin/systemctl stop roonbridge.service', { uid: 1000, gid: 1000 }, function (error, stdout, stderr) {
 		if (error) {
