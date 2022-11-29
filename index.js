@@ -12,6 +12,7 @@ var RoonApiTransport = require("node-roon-api-transport");
 var core;
 var zone;
 var zoneid;
+var zonename;
 var roon;
 var outputdevicename;
 var roonIsActive = false;
@@ -32,9 +33,11 @@ function volroon(context) {
 	self.context = context;
 	self.commandRouter = self.context.coreCommand;
 	self.logger = self.commandRouter.logger;
+	self.configManager = self.context.configManager;
 	self.coreip;
 	self.coreport;
 	self.coreid;
+	self.corename;
 	this.state = {
 		status: 'stop',
 		service: 'volroon',
@@ -146,6 +149,8 @@ volroon.prototype.chooseTheRightCore = function () {
 		self.coreip = core.moo.transport.host ? core.moo.transport.host : '';
 		self.coreport = core.moo.transport.port ? core.moo.transport.port : '';
 		self.coreid = core.core_id ? core.core_id : '';
+		self.corename = core.display_name ? core.display_name : '';
+
 		if (self.coreip && self.coreport) coreFound = core;
 		self.logger.info(`${this.state.service}::Roon Core Identified: ${self.coreip}:${self.coreport} with ID of: ${self.coreid}`)
 		defer.resolve();
@@ -176,6 +181,8 @@ volroon.prototype.indentifyZone = function (msg) {
 		})
 
 		zoneid = (zone && zone.zone_id) ? zone.zone_id : undefined;
+		zonename = (zone && zone.display_name) ? zone.display_name : undefined;
+
 
 	}
 	zoneid ? defer.resolve(zoneid) : defer.reject();
@@ -453,6 +460,15 @@ volroon.prototype.getUIConfig = function () {
 		__dirname + '/i18n/strings_en.json',
 		__dirname + '/UIConfig.json')
 		.then(function (uiconf) {
+
+
+			self.configManager.setUIConfigParam(uiconf, 'sections[0].content[0].value', self.corename ? self.corename : 'TRANSLATE.NOT_DETECTED');
+
+			self.configManager.setUIConfigParam(uiconf, 'sections[0].content[1].value', (self.coreip && self.coreport) ? `${self.coreip}:${self.coreport}` : 'TRANSLATE.NOT_DETECTED');
+
+			self.configManager.setUIConfigParam(uiconf, 'sections[0].content[2].value', zonename ? zonename : 'TRANSLATE.NOT_DETECTED');
+
+			self.configManager.setUIConfigParam(uiconf, 'sections[0].content[3].value', outputdevicename ? outputdevicename : 'TRANSLATE.NOT_DETECTED');
 
 
 			defer.resolve(uiconf);

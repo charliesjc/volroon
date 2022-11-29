@@ -3,5 +3,66 @@
     "label": "TRANSLATE.PLUGIN_CONFIGURATION"
   },
   "sections": [
+    {
+      "id": "section_roon",
+      "element": "section",
+      "label": "TRANSLATE.ROON_SECTION",
+      "icon": "fa-music",
+      "description": "TRANSLATE.ROON_DETAILS",
+      "content": [
+        {
+          "id": "core_name",
+          "element": "input",
+          "type": "text",
+          "doc": "TRANSLATE.CORE_NAME_DOC",
+          "label": "TRANSLATE.CORE_NAME",
+          "value": "",
+          "attributes": [
+            {
+              "readonly": true
+            }
+          ]
+        },
+        {
+          "id": "core_host",
+          "element": "input",
+          "type": "text",
+          "doc": "TRANSLATE.CORE_HOST_DOC",
+          "label": "TRANSLATE.CORE_HOST",
+          "value": "",
+          "attributes": [
+            {
+              "readonly": true
+            }
+          ]
+        },
+        {
+          "id": "core_zone",
+          "element": "input",
+          "type": "text",
+          "doc": "TRANSLATE.CORE_ZONE_DOC",
+          "label": "TRANSLATE.CORE_ZONE",
+          "value": "",
+          "attributes": [
+            {
+              "readonly": true
+            }
+          ]
+        },
+        {
+          "id": "core_outputdevice",
+          "element": "input",
+          "type": "text",
+          "doc": "TRANSLATE.OUTPUTDEVICE_DOC",
+          "label": "TRANSLATE.CORE_OUTPUTDEVICE",
+          "value": "",
+          "attributes": [
+            {
+              "readonly": true
+            }
+          ]
+        }
+      ]
+    }
   ]
 }

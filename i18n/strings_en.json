@@ -1,4 +1,15 @@
 {
-  "PLUGIN_CONFIGURATION":"Example Plugin Configuration",
-  "SAVE":"Save"
+  "PLUGIN_CONFIGURATION": "volroon Configuration",
+  "SAVE": "Save",
+  "ROON_SECTION": "Roon Vitals",
+  "ROON_DETAILS": "Auto-detected settings:",
+  "CORE_NAME": "Roon Core:",
+  "NOT_DETECTED": "Not Detected",
+  "CORE_HOST": "Roon Core Host:",
+  "CORE_ZONE": "Roon Zone:",
+  "CORE_OUTPUTDEVICE": "Roon Output Device:",
+  "OUTPUTDEVICE_DOC": "This is the same raw output name that you have selected in Volumio. You need to select the same device in Roon in order for the metadata and album art to be displayed in Volumio.",
+  "CORE_ZONE_DOC": "This is the name you have given your selected audio device in Roon.",
+  "CORE_HOST_DOC": "This is the IP address and port of your auto-detected Roon Core.",
+  "CORE_NAME_DOC": "This is the name of your auto-detected Roon Core."
 }
