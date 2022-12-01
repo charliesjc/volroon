@@ -4,9 +4,17 @@
   },
   "sections": [
     {
-      "id": "section_roon",
+      "id": "section_howto",
       "element": "section",
-      "label": "TRANSLATE.ROON_SECTION",
+      "label": "TRANSLATE.HOWTO_SECTION",
+      "icon": "fa-info-circle",
+      "description": "TRANSLATE.HOWTO_DESC",
+      "content": []
+    },
+    {
+      "id": "section_volroon",
+      "element": "section",
+      "label": "TRANSLATE.ROON_VITALS_SECTION",
       "icon": "fa-music",
       "description": "TRANSLATE.ROON_DETAILS",
       "content": [
@@ -14,7 +22,7 @@
           "id": "core_name",
           "element": "input",
           "type": "text",
-          "description": "TRANSLATE.CORE_NAME_DOC",
+          "description": "TRANSLATE.CORE_NAME_DESC",
           "label": "TRANSLATE.CORE_NAME",
           "value": "",
           "attributes": [
@@ -27,7 +35,7 @@
           "id": "core_host",
           "element": "input",
           "type": "text",
-          "description": "TRANSLATE.CORE_HOST_DOC",
+          "description": "TRANSLATE.CORE_HOST_DESC",
           "label": "TRANSLATE.CORE_HOST",
           "value": "",
           "attributes": [
@@ -37,10 +45,10 @@
           ]
         },
         {
-          "id": "core_zone",
+          "id": "zone",
           "element": "input",
           "type": "text",
-          "description": "TRANSLATE.CORE_ZONE_DOC",
+          "description": "TRANSLATE.CORE_ZONE_DESC",
           "label": "TRANSLATE.CORE_ZONE",
           "value": "",
           "attributes": [
@@ -50,10 +58,10 @@
           ]
         },
         {
-          "id": "core_outputdevice",
+          "id": "outputdevice",
           "element": "input",
           "type": "text",
-          "description": "TRANSLATE.OUTPUTDEVICE_DOC",
+          "description": "TRANSLATE.OUTPUTDEVICE_DESC",
           "label": "TRANSLATE.CORE_OUTPUTDEVICE",
           "value": "",
           "attributes": [

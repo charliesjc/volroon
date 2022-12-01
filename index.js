@@ -73,7 +73,7 @@ volroon.prototype.roonListener = function () {
 		// Make it look like an existing built-in Roon extension and you don't need to approve it in the UI.
 		extension_id: 'com.roonlabs.display_zone', // I think I only need to keep this one constant to avoid needing auth in Roon.
 		display_name: 'volroon - Roon Bridge on Volumio',
-		display_version: "0.1.2",
+		display_version: '0.1.3',
 		publisher: 'Dale Rider',
 		email: 'dale@sempervirens.co.za',
 		log_level: 'none',
@@ -498,13 +498,13 @@ volroon.prototype.getUIConfig = function () {
 		.then(function (uiconf) {
 
 
-			self.configManager.setUIConfigParam(uiconf, 'sections[0].content[0].value', self.corename ? self.corename : self.getI18n('NOT_DETECTED'));
+			self.configManager.setUIConfigParam(uiconf, 'sections[1].content[0].value', self.corename ? self.corename : self.getI18n('NOT_DETECTED'));
 
-			self.configManager.setUIConfigParam(uiconf, 'sections[0].content[1].value', (self.coreip && self.coreport) ? `${self.coreip}:${self.coreport}` : self.getI18n('NOT_DETECTED'));
+			self.configManager.setUIConfigParam(uiconf, 'sections[1].content[1].value', (self.coreip && self.coreport) ? `${self.coreip}:${self.coreport}` : self.getI18n('NOT_DETECTED'));
 
-			self.configManager.setUIConfigParam(uiconf, 'sections[0].content[2].value', zonename ? zonename : self.getI18n('NOT_DETECTED'));
+			self.configManager.setUIConfigParam(uiconf, 'sections[1].content[2].value', zonename ? zonename : self.getI18n('NOT_DETECTED'));
 
-			self.configManager.setUIConfigParam(uiconf, 'sections[0].content[3].value', outputdevicename ? outputdevicename : self.getI18n('NOT_DETECTED'));
+			self.configManager.setUIConfigParam(uiconf, 'sections[1].content[3].value', outputdevicename ? outputdevicename : self.getI18n('NOT_DETECTED'));
 
 
 			defer.resolve(uiconf);
