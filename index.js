@@ -380,6 +380,7 @@ volroon.prototype.onVolumioStart = function () {
 	var configFile = this.commandRouter.pluginManager.getConfigurationFile(this.context, 'config.json');
 	this.config = new (require('v-conf'))();
 	this.config.loadFile(configFile);
+	this.loadI18n();
 	return libQ.resolve();
 };
 
@@ -449,6 +450,41 @@ volroon.prototype.onRestart = function () {
 
 
 // Configuration Methods -----------------------------------------------------------------------------
+// loadI18n and getI18n functions from Spotify plugin (https://github.com/volumio/volumio-plugins-sources/tree/master/spotify)
+volroon.prototype.loadI18n = function () {
+	var self = this;
+
+	try {
+		var language_code = this.commandRouter.sharedVars.get('language_code');
+		self.i18n = fs.readJsonSync(__dirname + '/i18n/strings_' + language_code + ".json");
+	} catch (e) {
+		self.i18n = fs.readJsonSync(__dirname + '/i18n/strings_en.json');
+	}
+
+	self.i18nDefaults = fs.readJsonSync(__dirname + '/i18n/strings_en.json');
+};
+
+volroon.prototype.getI18n = function (key) {
+	var self = this;
+
+	if (key.indexOf('.') > 0) {
+		var mainKey = key.split('.')[0];
+		var secKey = key.split('.')[1];
+		if (self.i18n[mainKey][secKey] !== undefined) {
+			return self.i18n[mainKey][secKey];
+		} else {
+			return self.i18nDefaults[mainKey][secKey];
+		}
+
+	} else {
+		if (self.i18n[key] !== undefined) {
+			return self.i18n[key];
+		} else {
+			return self.i18nDefaults[key];
+		}
+
+	}
+};
 
 volroon.prototype.getUIConfig = function () {
 	var defer = libQ.defer();
@@ -462,13 +498,13 @@ volroon.prototype.getUIConfig = function () {
 		.then(function (uiconf) {
 
 
-			self.configManager.setUIConfigParam(uiconf, 'sections[0].content[0].value', self.corename ? self.corename : 'TRANSLATE.NOT_DETECTED');
+			self.configManager.setUIConfigParam(uiconf, 'sections[0].content[0].value', self.corename ? self.corename : self.getI18n('NOT_DETECTED'));
 
-			self.configManager.setUIConfigParam(uiconf, 'sections[0].content[1].value', (self.coreip && self.coreport) ? `${self.coreip}:${self.coreport}` : 'TRANSLATE.NOT_DETECTED');
+			self.configManager.setUIConfigParam(uiconf, 'sections[0].content[1].value', (self.coreip && self.coreport) ? `${self.coreip}:${self.coreport}` : self.getI18n('NOT_DETECTED'));
 
-			self.configManager.setUIConfigParam(uiconf, 'sections[0].content[2].value', zonename ? zonename : 'TRANSLATE.NOT_DETECTED');
+			self.configManager.setUIConfigParam(uiconf, 'sections[0].content[2].value', zonename ? zonename : self.getI18n('NOT_DETECTED'));
 
-			self.configManager.setUIConfigParam(uiconf, 'sections[0].content[3].value', outputdevicename ? outputdevicename : 'TRANSLATE.NOT_DETECTED');
+			self.configManager.setUIConfigParam(uiconf, 'sections[0].content[3].value', outputdevicename ? outputdevicename : self.getI18n('NOT_DETECTED'));
 
 
 			defer.resolve(uiconf);

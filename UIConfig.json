@@ -14,7 +14,7 @@
           "id": "core_name",
           "element": "input",
           "type": "text",
-          "doc": "TRANSLATE.CORE_NAME_DOC",
+          "description": "TRANSLATE.CORE_NAME_DOC",
           "label": "TRANSLATE.CORE_NAME",
           "value": "",
           "attributes": [
@@ -27,7 +27,7 @@
           "id": "core_host",
           "element": "input",
           "type": "text",
-          "doc": "TRANSLATE.CORE_HOST_DOC",
+          "description": "TRANSLATE.CORE_HOST_DOC",
           "label": "TRANSLATE.CORE_HOST",
           "value": "",
           "attributes": [
@@ -40,7 +40,7 @@
           "id": "core_zone",
           "element": "input",
           "type": "text",
-          "doc": "TRANSLATE.CORE_ZONE_DOC",
+          "description": "TRANSLATE.CORE_ZONE_DOC",
           "label": "TRANSLATE.CORE_ZONE",
           "value": "",
           "attributes": [
@@ -53,7 +53,7 @@
           "id": "core_outputdevice",
           "element": "input",
           "type": "text",
-          "doc": "TRANSLATE.OUTPUTDEVICE_DOC",
+          "description": "TRANSLATE.OUTPUTDEVICE_DOC",
           "label": "TRANSLATE.CORE_OUTPUTDEVICE",
           "value": "",
           "attributes": [
