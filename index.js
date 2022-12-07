@@ -73,7 +73,7 @@ volroon.prototype.roonListener = function () {
 		// Make it look like an existing built-in Roon extension and you don't need to approve it in the UI.
 		extension_id: 'com.roonlabs.display_zone', // I think I only need to keep this one constant to avoid needing auth in Roon.
 		display_name: 'volroon - Roon Bridge on Volumio',
-		display_version: '0.1.3',
+		display_version: '0.1.4',
 		publisher: 'Dale Rider',
 		email: 'dale@sempervirens.co.za',
 		log_level: 'none',
@@ -104,12 +104,12 @@ volroon.prototype.roonListener = function () {
 						try {
 							msg.zones_seek_changed.find(zone => {
 								if (zone.zone_id === zoneid) {
-									// if (zone.seek_position && Math.abs((zone.seek_position * 1000) - self.state.seek) > 1500) {
-									// 	self.state.seek = zone.seek_position * 1000;
-									// 	self.pushState()
-									// } else {
-									self.state.seek = zone.seek_position * 1000;
-									// }
+									if (zone.seek_position && Math.abs((zone.seek_position * 1000) - self.state.seek) > 1500) {
+										self.state.seek = zone.seek_position * 1000;
+										self.pushState();
+									} else {
+										self.state.seek = zone.seek_position * 1000;
+									}
 
 								}
 							});
@@ -153,13 +153,10 @@ volroon.prototype.chooseTheRightCore = function () {
 
 		if (self.coreip && self.coreport) coreFound = core;
 		self.logger.info(`${this.state.service}::Roon Core Identified: ${self.coreip}:${self.coreport} with ID of: ${self.coreid}`)
-		defer.resolve();
-	} else if (coreFound) {
-		defer.resolve();
-	} else {
-		defer.resolve(); //Resolve anyway because we don't need the core to show track info, only album art.
+
 	}
 
+	defer.resolve();
 	return defer.promise;
 
 }
