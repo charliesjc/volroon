@@ -56,7 +56,8 @@ function volroon(context) {
 		stream: false,
 		random: false,
 		repeat: false,
-		repeatSingle: false
+		repeatSingle: false,
+		disableUiControls: false
 	}
 	self.is_next_allowed = false;
 	self.is_previous_allowed = false;
@@ -153,6 +154,11 @@ volroon.prototype.chooseTheRightCore = function () {
 
 		if (self.coreip && self.coreport) coreFound = core;
 		self.logger.info(`${this.state.service}::Roon Core Identified: ${self.coreip}:${self.coreport} with ID of: ${self.coreid}`)
+		self.state.disableUiControls = false;
+
+	} else if (!coreFound) {
+
+		self.state.disableUiControls = true; // If the core isn't found then this will prevent the Volumio controls from working and causing a state mismatch.
 
 	}
 
