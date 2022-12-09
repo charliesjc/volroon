@@ -573,13 +573,15 @@ volroon.prototype.roonControl = function (zoneid, control) {
 					self.commandRouter.pushConsoleMessage(`${this.state.service}::Unable to send ${control} command to Roon - Error: ${err}`);
 					//Otherwise Volumio sits around with a mismatched state.
 					self.state.status = currentState;
-					self.pushState()
+					self.pushState();
 				} else {
 					self.commandRouter.pushConsoleMessage(`${this.state.service}::${control} command successfully sent to Roon.`);
 				}
 			})
 		} catch (err) {
 			self.logger.error(`volroon::roonControl - ${err}`);
+			self.state.status = currentState;
+			self.pushState();
 		}
 	}
 }
@@ -596,13 +598,16 @@ volroon.prototype.roonSettings = function (zoneid, settings) {
 					self.commandRouter.pushConsoleMessage(`${this.state.service}::Unable to send ${JSON.stringify(settings, null, '')} command to Roon - Error: ${err}`);
 					//Otherwise Volumio sits around with a mismatched state.
 					self.state.status = currentState;
-					self.pushState()
+					self.pushState();
 				} else {
 					self.commandRouter.pushConsoleMessage(`${this.state.service}::${JSON.stringify(settings, null, '')} command successfully sent to Roon.`);
 				}
 			})
 		} catch (err) {
 			self.logger.error(`volroon::roonSettings - ${err}`);
+			//Otherwise Volumio sits around with a mismatched state.
+			self.state.status = currentState;
+			self.pushState();
 		}
 	}
 
