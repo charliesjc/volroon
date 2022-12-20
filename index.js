@@ -172,22 +172,17 @@ volroon.prototype.indentifyZone = function (msg) {
 	var defer = libQ.defer();
 
 	// Get the zoneid for the device
-	if (((msg.zones || msg.zones_changed) && zoneid == undefined) || (msg.zones_added)) {
-		zone = (msg.zones ? msg.zones : msg.zones_changed ? msg.zones_changed : msg.zones_added).find(zone => {
-			return zone =
-				zone.outputs.find(output => {
-					return output =
-						output.source_controls.find(source_control => {
-							return source_control.display_name === outputdevicename
-						})
-				})
+	if ((zoneid == undefined) || (msg.zones_added)) {
+		// let zone = [...msg?.zones?.values()].find((zone) => zone?.outputs[0]?.source_controls[0]?.display_name === device);
+		zone = [...((msg?.zones ? msg.zones : msg?.zones_changed ? msg.zones_changed : msg?.zones_added)).values()].find(zone => {
+			return zone?.outputs[0]?.source_controls[0]?.display_name === outputdevicename
 		})
 
-		zoneid = (zone && zone.zone_id) ? zone.zone_id : undefined;
-		zonename = (zone && zone.display_name) ? zone.display_name : undefined;
-
+		zoneid = zone?.zone_id;
+		zonename = zone?.display_name;
 
 	}
+
 	zoneid ? defer.resolve(zoneid) : defer.reject();
 	return defer.promise;
 }
@@ -196,12 +191,12 @@ volroon.prototype.updateMetadata = function (msg) {
 	var self = this;
 	var defer = libQ.defer();
 
-	if (msg.zones || msg.zones_changed || msg.zones_added) {
-		zone = (msg.zones ? msg.zones : msg.zones_changed ? msg.zones_changed : msg.zones_added).find(zone => {
-			if (zone.zone_id) return zone.zone_id === zoneid;
-		})
-		self.logger.debug('volroon::updateMetadata zone: \n' + JSON.stringify(zone, null, ' '));
-	}
+
+	zone = (msg?.zones ? msg.zones : msg?.zones_changed ? msg?.zones_changed : msg.zones_added).find(zone => {
+		return zone?.zone_id === zoneid;
+	})
+	self.logger.debug('volroon::updateMetadata zone: \n' + JSON.stringify(zone, null, ' '));
+
 
 	if (zone) {
 		if (zone.state == 'playing') {
