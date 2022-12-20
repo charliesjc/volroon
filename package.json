@@ -25,7 +25,7 @@
 		"changelog": "Fix: Stray var causing a crash on uninstall"
 	},
 	"engines": {
-		"node": ">=8",
+		"node": ">=14",
 		"volumio": ">=3"
 	},
 	"dependencies": {
