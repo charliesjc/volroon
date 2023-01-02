@@ -86,7 +86,7 @@ volroon.prototype.roonListener = function () {
 
 				if (response && (response == "Subscribed" || response == "Changed")) {
 
-					if (msg && (msg.zones || msg.zones_added || msg.zones_changed)) {
+					if (msg?.zones || msg?.zones_added || msg?.zones_changed) {
 						self.indentifyZone(msg)
 							.then(() => {
 								self.chooseTheRightCore()
@@ -172,7 +172,7 @@ volroon.prototype.indentifyZone = function (msg) {
 	var defer = libQ.defer();
 
 	// Get the zoneid for the device
-	if ((zoneid == undefined) || (msg.zones_added)) {
+	if ((zoneid == undefined) || (msg?.zones_added)) {
 		// let zone = [...msg?.zones?.values()].find((zone) => zone?.outputs[0]?.source_controls[0]?.display_name === device);
 		zone = [...((msg?.zones ? msg.zones : msg?.zones_changed ? msg.zones_changed : msg?.zones_added)).values()].find(zone => {
 			return zone?.outputs[0]?.source_controls[0]?.display_name === outputdevicename
