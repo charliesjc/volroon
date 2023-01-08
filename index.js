@@ -16,7 +16,6 @@ var zonename;
 var roon;
 var outputdevicename;
 var roonIsActive = false;
-var roonPausedTimer;
 var corePaired = false;
 
 const msgMap = new Map();
@@ -206,18 +205,12 @@ volroon.prototype.updateMetadata = function (msg) {
 	if (zone) {
 		if (zone.state == 'playing') {
 			self.setRoonActive();
-
+			// clearTimeout(roonPausedTimer);
 		}
 
 		// This was a plan to have Volumio clear everything if Roon was sitting "paused" for long enough. I.e. you're gone.
-		if (zone && zone.state == 'paused' && roonIsActive && !roonPausedTimer) roonPausedTimer = Date.now();
+		// if (zone?.state == 'paused' && roonIsActive && !roonPausedTimer) var roonPausedTimer = setTimeout(() => self.stop(), 5000);
 
-		// if (zone.state == 'paused' && roonIsActive && roonPausedTimer) {
-		// 	if (Date.now() - roonPausedTimer >= 600000) {
-		// 		roonPausedTimer = null;
-		// 		self.setRoonInactive();
-		// 	}
-		// }
 
 		if (roonIsActive || roonPausedTimer) {
 
@@ -640,14 +633,6 @@ volroon.prototype.stop = function () {
 		self.roonControl(zoneid, 'stop');
 		self.setRoonInactive();
 	}
-
-	var state = self.getState();
-	if (state && state.service && state.service === 'volroon') {
-		self.logger.info(this.state.service + '::Roon Playback Stopped, clearing state');
-		self.commandRouter.stateMachine.resetVolumioState();
-	}
-
-	// self.commandRouter.stateMachine.playQueue.clearPlayQueue();
 
 };
 
