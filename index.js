@@ -17,7 +17,7 @@ var roon;
 var outputdevicename;
 var roonIsActive = false;
 var roonPausedTimer;
-var coreFound;
+var corePaired = false;
 
 const msgMap = new Map();
 msgMap.set('playing', 'play')
@@ -80,7 +80,7 @@ volroon.prototype.roonListener = function () {
 		log_level: 'none',
 
 
-		core_found: function (core_) {
+		core_paired: function (core_) {
 			core = core_;
 			core.services.RoonApiTransport.subscribe_zones(function (response, msg) {
 
@@ -89,7 +89,7 @@ volroon.prototype.roonListener = function () {
 					if (msg?.zones || msg?.zones_added || msg?.zones_changed) {
 						self.indentifyZone(msg)
 							.then(() => {
-								self.chooseTheRightCore()
+								self.getCoreDetails()
 							})
 							.then(() => {
 								self.updateMetadata(msg)
@@ -127,8 +127,8 @@ volroon.prototype.roonListener = function () {
 			})
 		},
 
-		core_lost: function (core_) {
-
+		core_unpaired: function (core_) {
+			corePaired = false;
 		}
 	});
 
@@ -141,22 +141,22 @@ volroon.prototype.roonListener = function () {
 
 }
 
-volroon.prototype.chooseTheRightCore = function () {
+volroon.prototype.getCoreDetails = function () {
 	var self = this;
 	var defer = libQ.defer()
 	//Get the Core IP and Port. If you have multiple cores or even just 2 PC's running Roon, finding the right core by just looking at core.moo.transport.host will be a hit and miss.
-	if (zoneid && core.services.RoonApiTransport._zones && core.services.RoonApiTransport._zones[zoneid] && !coreFound) {
+	if (zoneid && core.services.RoonApiTransport._zones && core.services.RoonApiTransport._zones[zoneid] && !corePaired) {
 
-		self.coreip = core.moo.transport.host ? core.moo.transport.host : '';
-		self.coreport = core.moo.transport.port ? core.moo.transport.port : '';
-		self.coreid = core.core_id ? core.core_id : '';
-		self.corename = core.display_name ? core.display_name : '';
+		self.coreip = core?.moo?.transport?.host ?? '';
+		self.coreport = core?.moo?.transport?.port ?? '';
+		self.coreid = core?.core_id ?? '';
+		self.corename = core?.display_name ?? '';
 
-		if (self.coreip && self.coreport) coreFound = core;
-		self.logger.info(`${this.state.service}::Roon Core Identified: ${self.coreip}:${self.coreport} with ID of: ${self.coreid}`)
+		if (self.coreip && self.coreport) corePaired = true;
+		self.logger.info(`${this.state.service}::Roon Core Paired: ${self.coreip}:${self.coreport} with ID of: ${self.coreid}`)
 		self.state.disableUiControls = false;
 
-	} else if (!coreFound) {
+	} else if (!corePaired) {
 
 		self.state.disableUiControls = true; // If the core isn't found then this will prevent the Volumio controls from working and causing a state mismatch.
 
@@ -297,7 +297,7 @@ volroon.prototype.setRoonActive = function () {
 volroon.prototype.setRoonInactive = function () {
 	var self = this;
 	roonIsActive = false;
-	// coreFound = false;
+	// corePaired = false;
 };
 
 //The unsetVolatile callback will be called when "stop" is pushed or called.
@@ -567,9 +567,9 @@ volroon.prototype.roonControl = function (zoneid, control) {
 	var self = this;
 	var currentState = self.state.status;
 
-	if (zoneid != undefined && control != undefined && coreFound != false) {
+	if (zoneid != undefined && control != undefined && corePaired != false) {
 		try {
-			coreFound.services.RoonApiTransport.control(zoneid, control, (err) => {
+			core.services.RoonApiTransport.control(zoneid, control, (err) => {
 				if (err) {
 					self.commandRouter.pushConsoleMessage(`${this.state.service}::Unable to send ${control} command to Roon - Error: ${err}`);
 					//Otherwise Volumio sits around with a mismatched state.
@@ -592,9 +592,9 @@ volroon.prototype.roonSettings = function (zoneid, settings) {
 	var self = this;
 	var currentState = self.state.status;
 
-	if (zoneid != undefined && settings != undefined && coreFound != false) {
+	if (zoneid != undefined && settings != undefined && corePaired != false) {
 		try {
-			coreFound.services.RoonApiTransport.change_settings(zoneid, settings, (err) => {
+			core.services.RoonApiTransport.change_settings(zoneid, settings, (err) => {
 				if (err) {
 					self.commandRouter.pushConsoleMessage(`${this.state.service}::Unable to send ${JSON.stringify(settings, null, '')} command to Roon - Error: ${err}`);
 					//Otherwise Volumio sits around with a mismatched state.
@@ -616,9 +616,9 @@ volroon.prototype.roonSettings = function (zoneid, settings) {
 
 volroon.prototype.seek = function (timepos) {
 	var self = this;
-	if (zoneid != undefined && timepos != undefined && coreFound != false) {
+	if (zoneid != undefined && timepos != undefined && corePaired != false) {
 		try {
-			return coreFound.services.RoonApiTransport.seek(zone, 'absolute', (timepos / 1000), (err) => {
+			return core.services.RoonApiTransport.seek(zone, 'absolute', (timepos / 1000), (err) => {
 				if (err) {
 					self.commandRouter.pushConsoleMessage(`${this.state.service}::Unable to send seek command to Roon - Error: ${err}`);
 				} else {
