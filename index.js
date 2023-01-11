@@ -63,6 +63,7 @@ function volroon(context) {
 	self.is_pause_allowed = false;
 	self.is_play_allowed = true;
 	self.is_seek_allowed = false;
+	self.roonQueue = [];
 
 
 }
@@ -92,6 +93,15 @@ volroon.prototype.roonListener = function () {
 							})
 							.then(() => {
 								self.updateMetadata(msg)
+							})
+							.then(() => {
+								if (zoneid) {
+									core.services.RoonApiTransport.subscribe_queue(zoneid, 20, function (response, msg) {
+										if (response) {
+											self.manageRoonQueue(msg);
+										}
+									})
+								}
 							})
 							.fail(err => {
 								self.logger.error(`volroon::Metadata - ${err}`);
@@ -697,21 +707,47 @@ volroon.prototype.pushState = function () {
 	return self.commandRouter.servicePushState(this.state, this.state.service);
 };
 
+volroon.prototype.manageRoonQueue = function (msg = []) {
+	var self = this;
+	var defer = libQ.defer();
+
+	msg?.items?.forEach((item) => {
+		this.roonQueue.push({
+			uri: 'roon://' + item?.queue_item_id,
+			queue_item_id: item?.queue_item_id,
+			trackType: 'roon',
+			service: 'volroon',
+			name: item?.three_line?.line1,
+			artist: item?.three_line?.line2,
+			album: item?.three_line?.line3,
+			albumart: self.getAlbumArt(item?.image_key, 'small'),
+			duration: item?.length,
+		});
+	});
+
+	return defer.promise;
+}
 
 volroon.prototype.explodeUri = function (uri) {
 	var self = this;
 	var defer = libQ.defer();
+	var items = [];
 
 	// Mandatory: retrieve all info for a given URI
+	if (uri.startsWith('roon://')) {
+		let splitted = uri.split('roon://');
+		let queue_item_id = splitted[1];
+		items.push(this.roonQueue)
+	}
 
 	return defer.promise;
 };
 
-volroon.prototype.getAlbumArt = function (image_key = '') {
+volroon.prototype.getAlbumArt = function (image_key = '', size = 'large') {
 	var self = this;
 
 	if (image_key && self.coreip && self.coreport) {
-		return `http://${self.coreip}:${self.coreport}/api/image/${image_key}`
+		return `http://${self.coreip}:${self.coreport}/api/image/${image_key}${size === 'small' ? '?scale=fill&width=200' : ''}`
 	} else {
 		return '/albumart';
 	}
