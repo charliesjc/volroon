@@ -17,6 +17,7 @@ var roon;
 var outputdevicename;
 var roonIsActive = false;
 var corePaired = false;
+var roonQueueSubscribed = false;
 
 const msgMap = new Map();
 msgMap.set('playing', 'play')
@@ -45,6 +46,7 @@ function volroon(context) {
 		album: '',
 		albumart: '/albumart',
 		uri: '',
+		position: 0,
 		trackType: 'roon',
 		seek: 0,
 		duration: 0,
@@ -92,17 +94,23 @@ volroon.prototype.roonListener = function () {
 								self.getCoreDetails()
 							})
 							.then(() => {
-								self.updateMetadata(msg)
-							})
-							.then(() => {
-								if (zoneid) {
+								if (zoneid && roonQueueSubscribed == false) {
 									core.services.RoonApiTransport.subscribe_queue(zoneid, 20, function (response, msg) {
-										if (response) {
-											self.manageRoonQueue(msg);
+										if (response /*&& response == 'Subscribed'*/) {
+											roonQueueSubscribed = true;
+											self.manageRoonQueue(response, msg);
 										}
+
+										// if (response && response == 'Changed') {
+
+										// }
 									})
 								}
 							})
+							.then(() => {
+								self.updateMetadata(msg)
+							})
+
 							.fail(err => {
 								self.logger.error(`volroon::Metadata - ${err}`);
 							});
@@ -230,6 +238,7 @@ volroon.prototype.updateMetadata = function (msg) {
 			self.state.album = zone.now_playing ? zone.now_playing.three_line.line3 : '';
 			self.state.albumart = zone.now_playing ? this.getAlbumArt(zone.now_playing.image_key) : '/albumart';
 			self.state.uri = '';
+			self.state.position = 0;
 			self.state.seek = zone.now_playing ? zone.now_playing.seek_position * 1000 : 0;
 			self.state.duration = zone.now_playing ? zone.now_playing.length : 0;
 			self.state.stream = self.state.duration === 0 ? true : false;
@@ -707,28 +716,60 @@ volroon.prototype.pushState = function () {
 	return self.commandRouter.servicePushState(this.state, this.state.service);
 };
 
-volroon.prototype.manageRoonQueue = function (msg = []) {
+volroon.prototype.manageRoonQueue = function (response, msg = []) {
 	var self = this;
 	var defer = libQ.defer();
 
 	if (!roonIsActive) return defer.reject();
 
-	// self.commandRouter.volumioClearQueue();
-	msg?.items?.forEach((item) => {
-		this.roonQueue.push({
-			uri: 'roon://' + item?.queue_item_id,
-			queue_item_id: item?.queue_item_id,
-			trackType: 'roon',
-			service: 'volroon',
-			name: item?.three_line?.line1,
-			artist: item?.three_line?.line2,
-			album: item?.three_line?.line3,
-			albumart: self.getAlbumArt(item?.image_key, 'small'),
-			duration: item?.length,
-		});
-	});
+	self.commandRouter.stateMachine.playQueue.clearPlayQueue(false);
 
-	self.commandRouter.addQueueItems(this.roonQueue)
+	if (response == 'Subscribed') {
+
+		msg?.items?.forEach((item) => {
+			self.roonQueue.push({
+				uri: 'roon://' + item?.queue_item_id,
+				queue_item_id: item?.queue_item_id,
+				trackType: 'roon',
+				service: 'volroon',
+				name: item?.three_line?.line1,
+				artist: item?.three_line?.line2,
+				album: item?.three_line?.line3,
+				albumart: self.getAlbumArt(item?.image_key, 'small'),
+				duration: item?.length
+			});
+		})
+
+	} else if (response == 'Changed') {
+
+		msg?.changes.forEach((change) => {
+			if (change.operation == 'remove') {
+				self.roonQueue.splice(change?.index, change?.count)
+			}
+
+			if (change.operation == 'insert') {
+				var newQueueItems = [];
+				change?.items.forEach((item) => {
+					newQueueItems.push({
+						uri: 'roon://' + item?.queue_item_id,
+						queue_item_id: item?.queue_item_id,
+						trackType: 'roon',
+						service: 'volroon',
+						name: item?.three_line?.line1,
+						artist: item?.three_line?.line2,
+						album: item?.three_line?.line3,
+						albumart: self.getAlbumArt(item?.image_key, 'small'),
+						duration: item?.length
+					})
+				})
+
+				self.roonQueue.splice(change?.index, 0, newQueueItems)
+			}
+		})
+	};
+
+
+	self.commandRouter.addQueueItems(self.roonQueue)
 		.then(() => defer.resolve());
 
 	return defer.promise;
