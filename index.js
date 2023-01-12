@@ -711,6 +711,9 @@ volroon.prototype.manageRoonQueue = function (msg = []) {
 	var self = this;
 	var defer = libQ.defer();
 
+	if (!roonIsActive) return defer.reject();
+
+	// self.commandRouter.volumioClearQueue();
 	msg?.items?.forEach((item) => {
 		this.roonQueue.push({
 			uri: 'roon://' + item?.queue_item_id,
@@ -725,6 +728,9 @@ volroon.prototype.manageRoonQueue = function (msg = []) {
 		});
 	});
 
+	self.commandRouter.addQueueItems(this.roonQueue)
+		.then(() => defer.resolve());
+
 	return defer.promise;
 }
 
@@ -735,9 +741,12 @@ volroon.prototype.explodeUri = function (uri) {
 
 	// Mandatory: retrieve all info for a given URI
 	if (uri.startsWith('roon://')) {
-		let splitted = uri.split('roon://');
-		let queue_item_id = splitted[1];
-		items.push(this.roonQueue)
+		var splitted = uri.split('roon://');
+		var queue_item_id = splitted[1];
+		items.push(self.roonQueue.find(item => item.queue_item_id == queue_item_id));
+		defer.resolve(items);
+	} else {
+		defer.reject()
 	}
 
 	return defer.promise;
@@ -747,7 +756,7 @@ volroon.prototype.getAlbumArt = function (image_key = '', size = 'large') {
 	var self = this;
 
 	if (image_key && self.coreip && self.coreport) {
-		return `http://${self.coreip}:${self.coreport}/api/image/${image_key}${size === 'small' ? '?scale=fill&width=200' : ''}`
+		return `http://${self.coreip}:${self.coreport}/api/image/${image_key}${size === 'small' ? '?scale=fill&width=200&height=200' : ''}`
 	} else {
 		return '/albumart';
 	}
