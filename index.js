@@ -722,10 +722,8 @@ volroon.prototype.manageRoonQueue = function (response, msg = []) {
 
 	if (!roonIsActive) return defer.reject();
 
-	self.commandRouter.stateMachine.playQueue.clearPlayQueue(false);
-
 	if (response == 'Subscribed') {
-
+		self.commandRouter.stateMachine.playQueue.clearPlayQueue(false);
 		msg?.items?.forEach((item) => {
 			self.roonQueue.push({
 				uri: 'roon://' + item?.queue_item_id,
@@ -741,16 +739,16 @@ volroon.prototype.manageRoonQueue = function (response, msg = []) {
 		})
 
 	} else if (response == 'Changed') {
+		self.commandRouter.stateMachine.playQueue.clearPlayQueue(false);
 
-		msg?.changes.forEach((change) => {
+		msg?.changes?.forEach((change) => {
 			if (change.operation == 'remove') {
-				self.roonQueue.splice(change?.index, change?.count)
+				self.roonQueue = [];
 			}
 
 			if (change.operation == 'insert') {
-				var newQueueItems = [];
 				change?.items.forEach((item) => {
-					newQueueItems.push({
+					self.roonQueue.push({
 						uri: 'roon://' + item?.queue_item_id,
 						queue_item_id: item?.queue_item_id,
 						trackType: 'roon',
@@ -762,14 +760,11 @@ volroon.prototype.manageRoonQueue = function (response, msg = []) {
 						duration: item?.length
 					})
 				})
-
-				self.roonQueue.splice(change?.index, 0, newQueueItems)
 			}
 		})
 	};
 
-
-	self.commandRouter.addQueueItems(self.roonQueue)
+	self.commandRouter.stateMachine.playQueue.addQueueItems(self.roonQueue)
 		.then(() => defer.resolve());
 
 	return defer.promise;
