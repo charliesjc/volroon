@@ -94,10 +94,10 @@ volroon.prototype.roonListener = function () {
 								self.getCoreDetails()
 							})
 							.then(() => {
-								if (zoneid && roonQueueSubscribed == false) {
+								if (zoneid /* && roonQueueSubscribed == false */) {
 									core.services.RoonApiTransport.subscribe_queue(zoneid, 20, function (response, msg) {
 										if (response /*&& response == 'Subscribed'*/) {
-											roonQueueSubscribed = true;
+											// roonQueueSubscribed = true;
 											self.manageRoonQueue(response, msg);
 										}
 
@@ -237,7 +237,7 @@ volroon.prototype.updateMetadata = function (msg) {
 			self.state.artist = zone.now_playing ? zone.now_playing.three_line.line2 : '';
 			self.state.album = zone.now_playing ? zone.now_playing.three_line.line3 : '';
 			self.state.albumart = zone.now_playing ? this.getAlbumArt(zone.now_playing.image_key) : '/albumart';
-			self.state.uri = '';
+			self.state.uri = self.roonQueue[0]?.uri;
 			self.state.position = 0;
 			self.state.seek = zone.now_playing ? zone.now_playing.seek_position * 1000 : 0;
 			self.state.duration = zone.now_playing ? zone.now_playing.length : 0;
