@@ -712,20 +712,25 @@ volroon.prototype.getAlbumArt = function (image_key = '') {
 	var self = this;
 	var albumart;
 	if (image_key && self.coreip && self.coreport) {
-		axios.head(`http://${self.coreip}:${self.coreport}/api/image/${image_key}`)
+		albumart = axios.head(`http://${self.coreip}:${self.coreport}/api/image/${image_key}`)
 			.then((res) => {
-				if (res.statusText != 'OK') throw new Error('Error while fetching albumart from Roon, trying again...');
-
+				if (res.statusText != 'OK') throw new Error('volroon:: Error while fetching albumart from Roon, trying again...');
 			})
 			.catch((err) => {
-				self.logger.error(err)
-			})
-			.finally(() => {
-				albumart = `http://${self.coreip}:${self.coreport}/api/image/${image_key}`;
-			})
+				self.logger.error(err);
+				setTimeout(() => {
+					axios.head(`http://${self.coreip}:${self.coreport}/api/image/${image_key}`)
+						.then(() => {
+							if (res.statusText != 'OK') throw new Error('volroon:: Error while fetching albumart from Roon, loading default art.');
+						})
+						.catch((err) => {
+							self.logger.error(err);
+						})
+				}, 1000)
+			}) ? `http://${self.coreip}:${self.coreport}/api/image/${image_key}` : undefined;
 
 	}
-	self.logger.error('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!' + albumart)
+
 	return albumart || '/albumart';
 };
 
