@@ -8,6 +8,7 @@ var execSync = require('child_process').execSync;
 var RoonApi = require("node-roon-api");
 var RoonApiTransport = require("node-roon-api-transport");
 var axios = require('axios');
+const { off } = require('process');
 
 var core;
 var zone;
@@ -238,6 +239,16 @@ volroon.prototype.updateMetadata = function (msg) {
 
 			}
 
+			self.getAudioStreamDetails()
+				.then((data) => {
+					self.state.samplerate = data?.sampleRate;
+					self.state.bitdepth = data?.bitRate;
+				})
+				.catch((error) => {
+					self.state.samplerate = '';
+					self.state.bitdepth = '';
+					self.logger.error(`volroon:: ${error}`);
+				})
 			// self.state.samplerate = '';
 			// self.state.bitdepth = '';
 			// self.state.bitrate = '';
@@ -368,6 +379,34 @@ volroon.prototype.getOutputDeviceName = function () {
 	}
 
 };
+
+volroon.prototype.getAudioStreamDetails = function () {
+	var self = this;
+
+	return new Promise((resolve, reject) => {
+		// Get output card number
+		let cardNumber = self.commandRouter.executeOnPlugin('audio_interface', 'alsa_controller', 'getConfigParam', 'outputdevice');
+
+		const pcmFilePath = `/proc/asound/card${cardNumber}/pcm0p/sub0/hw_params`;
+
+		fs.readFile(pcmFilePath, 'utf8', (error, data) => {
+			if (error) {
+				reject(error);
+			}
+
+			let sampleRateExp = data.match(/rate:\s+(\d+)/i);
+			let sampleRate = sampleRateExp ? parseInt(sampleRateExp[1]) / 1000 + ' kHz' : '';
+			let formatExp = data.match(/format:\s+(\w+)/i);
+			let format = formatExp ? formatExp[1] : '';
+			let bitRate = format.includes('S32') ? '32-bit' : format.includes('S24') ? '24-bit' : format.includes('S16') ? '16-bit' : format.includes('DSD') ? '1-bit' : '';
+
+			resolve({ sampleRate, bitRate });
+
+		});
+	});
+
+
+}
 
 volroon.prototype.onVolumioStart = function () {
 	var self = this;
