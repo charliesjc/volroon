@@ -7,8 +7,6 @@ var config = new (require('v-conf'))();
 var execSync = require('child_process').execSync;
 var RoonApi = require("node-roon-api");
 var RoonApiTransport = require("node-roon-api-transport");
-var axios = require('axios');
-const { off } = require('process');
 
 var core;
 var zone;
@@ -748,28 +746,12 @@ volroon.prototype.explodeUri = function (uri) {
 
 volroon.prototype.getAlbumArt = function (image_key = '') {
 	var self = this;
-	var albumart;
+
 	if (image_key && self.coreip && self.coreport) {
-		albumart = axios.head(`http://${self.coreip}:${self.coreport}/api/image/${image_key}`)
-			.then((res) => {
-				if (res.statusText != 'OK') throw new Error('volroon:: Error while fetching albumart from Roon, trying again...');
-			})
-			.catch((err) => {
-				self.logger.error(err);
-				setTimeout(() => {
-					axios.head(`http://${self.coreip}:${self.coreport}/api/image/${image_key}`)
-						.then(() => {
-							if (res.statusText != 'OK') throw new Error('volroon:: Error while fetching albumart from Roon, loading default art.');
-						})
-						.catch((err) => {
-							self.logger.error(err);
-						})
-				}, 1000)
-			}) ? `http://${self.coreip}:${self.coreport}/api/image/${image_key}` : undefined;
-
+		return `http://${self.coreip}:${self.coreport}/api/image/${image_key}`
+	} else {
+		return '/albumart';
 	}
-
-	return albumart || '/albumart';
 };
 
 volroon.prototype.search = function (query) {

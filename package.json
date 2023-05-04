@@ -29,11 +29,10 @@
 		"volumio": ">=3"
 	},
 	"dependencies": {
-		"axios": "^1.2.6",
 		"fs-extra": "^0.28.0",
 		"kew": "^0.7.0",
+		"v-conf": "^1.4.0",
 		"node-roon-api": "github:roonlabs/node-roon-api",
-		"node-roon-api-transport": "github:roonlabs/node-roon-api-transport",
-		"v-conf": "^1.4.0"
+		"node-roon-api-transport": "github:roonlabs/node-roon-api-transport"
 	}
 }
