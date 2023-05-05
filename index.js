@@ -172,7 +172,7 @@ volroon.prototype.indentifyZone = function (msg) {
 
 	// Get the zoneid for the device
 	if (((msg.zones || msg.zones_changed) && zoneid == undefined) || (msg.zones_added)) {
-		zone = (msg.zones ? msg.zones : msg.zones_changed ? msg.zones_changed : msg.zones_added).find(zone => {
+		zone = (msg?.zones || msg?.zones_changed || msg?.zones_added).find(zone => {
 			return zone =
 				zone.outputs.find(output => {
 					return output =
@@ -196,7 +196,7 @@ volroon.prototype.updateMetadata = function (msg) {
 	var defer = libQ.defer();
 
 
-	zone = (msg?.zones ? msg.zones : msg?.zones_changed ? msg?.zones_changed : msg.zones_added).find(zone => {
+	zone = (msg?.zones || msg?.zones_changed || msg?.zones_added).find(zone => {
 		return zone?.zone_id === zoneid;
 	})
 	self.logger.debug('volroon::updateMetadata zone: \n' + JSON.stringify(zone, null, ' '));
@@ -249,11 +249,11 @@ volroon.prototype.updateMetadata = function (msg) {
 			// self.state.bitrate = '';
 			self.state.channels = 2;
 
-			self.is_next_allowed = zone ? zone.is_next_allowed : true;
-			self.is_previous_allowed = zone ? zone.is_previous_allowed : true;
-			self.is_pause_allowed = zone ? zone.is_pause_allowed : true;
-			self.is_play_allowed = zone ? zone.is_play_allowed : false;
-			self.is_seek_allowed = zone ? zone.is_seek_allowed : true;
+			self.is_next_allowed = zone?.is_next_allowed ?? true;
+			self.is_previous_allowed = zone?.is_previous_allowed ?? true;
+			self.is_pause_allowed = zone?.is_pause_allowed ?? true;
+			self.is_play_allowed = zone?.is_play_allowed ?? false;
+			self.is_seek_allowed = zone?.is_seek_allowed ?? true;
 
 			self.logger.verbose(`${this.state.service}::State snapshot: ${JSON.stringify(self.state, null, '')}`);
 			self.pushState();
