@@ -7,6 +7,7 @@ var config = new (require('v-conf'))();
 var execSync = require('child_process').execSync;
 var RoonApi = require("node-roon-api");
 var RoonApiTransport = require("node-roon-api-transport");
+const { clearTimeout } = require('timers');
 
 var core;
 var zone;
@@ -16,6 +17,7 @@ var roon;
 var outputdevicename;
 var roonIsActive = false;
 var corePaired = false;
+var roonPausedTimer = null;
 
 const msgMap = new Map();
 msgMap.set('playing', 'play')
@@ -201,13 +203,19 @@ volroon.prototype.updateMetadata = function (msg) {
 
 
 	if (zone) {
-		if (zone.state == 'playing') {
+		if (zone?.state == 'playing') {
+			clearTimeout(roonPausedTimer);
 			self.setRoonActive();
-			// clearTimeout(roonPausedTimer);
 		}
 
-		// This was a plan to have Volumio clear everything if Roon was sitting "paused" for long enough. I.e. you're gone.
-		// if (zone?.state == 'paused' && roonIsActive && !roonPausedTimer) var roonPausedTimer = setTimeout(() => self.stop(), 5000);
+		// Clear everything if Roon is sitting "paused" for long enough.
+		if (zone?.state == 'paused' && roonIsActive) {
+			const TIMEOUT_MS = 15 * 60000; // Minutes to milliseconds
+			roonPausedTimer = setTimeout(() => {
+				self.stop();
+				self.commandRouter.volumioClearQueue();
+			}, TIMEOUT_MS);
+		}
 
 
 		if (roonIsActive || roonPausedTimer) {
